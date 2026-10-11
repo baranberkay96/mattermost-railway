@@ -1,5 +1,7 @@
 # Deploy and Host Mattermost with Railway
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/mattermost-v11-team-chat?referralCode=20H68q)
+
 Mattermost is an open-source team messaging platform with channels, threads, direct messages, file sharing and integrations. This community template runs Mattermost Team Edition v11 on Railway with PostgreSQL, keeps its configuration in the database and stores every upload in a Railway Bucket, so nothing is lost on redeploy.
 
 ## About Hosting Mattermost
