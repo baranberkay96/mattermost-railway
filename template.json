@@ -1,0 +1,323 @@
+{
+  "name": "Mattermost v11 Team Chat",
+  "description": "Secure team messaging with channels, threads and file storage on S3.",
+  "category": "Other",
+  "tags": [
+    "mattermost",
+    "team-chat",
+    "slack-alternative",
+    "messaging",
+    "collaboration",
+    "self-hosted"
+  ],
+  "image": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mattermost.svg",
+  "services": {
+    "Mattermost": {
+      "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mattermost.svg",
+      "source": {
+        "image": "mattermost/mattermost-team-edition:11.11.1"
+      },
+      "startCommand": null,
+      "healthcheckPath": "/api/v4/system/ping",
+      "healthcheckTimeout": 600,
+      "restartPolicyType": "ALWAYS",
+      "numReplicas": 1,
+      "publicDomain": true,
+      "targetPort": 8065,
+      "tcpProxy": null,
+      "volume": null,
+      "variables": {
+        "PORT": {
+          "defaultValue": "8065",
+          "description": "Port Mattermost listens on (domain and healthcheck).",
+          "required": false
+        },
+        "TZ": {
+          "defaultValue": "UTC",
+          "description": "Container time zone.",
+          "required": false
+        },
+        "MM_SERVICESETTINGS_SITEURL": {
+          "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
+          "description": "Public URL of the server. Change it when you add a custom domain.",
+          "required": true
+        },
+        "MM_SERVICESETTINGS_LISTENADDRESS": {
+          "defaultValue": ":8065",
+          "description": "Listen on all IPv4 and IPv6 interfaces.",
+          "required": false
+        },
+        "MM_SERVICESETTINGS_TRUSTEDPROXYIPHEADER": {
+          "defaultValue": "X-Forwarded-For X-Real-IP",
+          "description": "Headers carrying the client IP behind Railway's proxy (audit logs, rate limits).",
+          "required": false
+        },
+        "MM_SQLSETTINGS_DRIVERNAME": {
+          "defaultValue": "postgres",
+          "description": "Database driver.",
+          "required": true
+        },
+        "MM_SQLSETTINGS_DATASOURCE": {
+          "defaultValue": "postgres://${{Postgres.PGUSER}}:${{Postgres.PGPASSWORD}}@${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/${{Postgres.PGDATABASE}}?sslmode=disable&connect_timeout=10",
+          "description": "Postgres connection string (private network).",
+          "required": true
+        },
+        "MM_CONFIG": {
+          "defaultValue": "${{MM_SQLSETTINGS_DATASOURCE}}",
+          "description": "Store the server configuration in Postgres so System Console changes survive redeploys.",
+          "required": true
+        },
+        "MM_SQLSETTINGS_MAXOPENCONNS": {
+          "defaultValue": "50",
+          "description": "Max open DB connections (Railway Postgres allows 100).",
+          "required": false
+        },
+        "MM_SQLSETTINGS_MAXIDLECONNS": {
+          "defaultValue": "20",
+          "description": "Max idle DB connections.",
+          "required": false
+        },
+        "MM_SQLSETTINGS_ATRESTENCRYPTKEY": {
+          "defaultValue": "${{secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+          "description": "Key for encrypting sensitive data at rest. Never change after first boot.",
+          "required": true
+        },
+        "MM_FILESETTINGS_DRIVERNAME": {
+          "defaultValue": "amazons3",
+          "description": "Store uploads, avatars and plugins in S3 (the Railway Bucket via S3 Gateway).",
+          "required": true
+        },
+        "MM_FILESETTINGS_AMAZONS3ENDPOINT": {
+          "defaultValue": "${{S3 Gateway.RAILWAY_PRIVATE_DOMAIN}}:${{S3 Gateway.PORT}}",
+          "description": "S3 Gateway address on the private network (host:port, no scheme).",
+          "required": true
+        },
+        "MM_FILESETTINGS_AMAZONS3BUCKET": {
+          "defaultValue": "mattermost",
+          "description": "Logical bucket = folder inside the Railway Bucket. Must be listed in the gateway's GATEWAY_BUCKETS.",
+          "required": true
+        },
+        "MM_FILESETTINGS_AMAZONS3ACCESSKEYID": {
+          "defaultValue": "${{S3 Gateway.GATEWAY_ACCESS_KEY}}",
+          "description": "Gateway access key.",
+          "required": true
+        },
+        "MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY": {
+          "defaultValue": "${{S3 Gateway.GATEWAY_SECRET_KEY}}",
+          "description": "Gateway secret key.",
+          "required": true
+        },
+        "MM_FILESETTINGS_AMAZONS3SSL": {
+          "defaultValue": "false",
+          "description": "Plain HTTP to the gateway (private network); the gateway uses HTTPS to the Bucket.",
+          "required": false
+        },
+        "MM_FILESETTINGS_AMAZONS3REGION": {
+          "defaultValue": "us-east-1",
+          "description": "Region used to sign requests to the gateway.",
+          "required": false
+        },
+        "MM_FILESETTINGS_PUBLICLINKSALT": {
+          "defaultValue": "${{secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+          "description": "Salt for public file links. Changing it invalidates existing links.",
+          "required": false
+        },
+        "MM_FILESETTINGS_MAXFILESIZE": {
+          "defaultValue": "104857600",
+          "description": "Maximum upload size in bytes (100 MB).",
+          "required": false
+        },
+        "MM_TEAMSETTINGS_MAXUSERSPERTEAM": {
+          "defaultValue": "250",
+          "description": "Max members per team (Team Edition servers are limited to 250 active users).",
+          "required": false
+        },
+        "MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS": {
+          "defaultValue": "generic",
+          "description": "Mobile push shows sender and channel, not message text (pushes travel through Mattermost's push service).",
+          "required": false
+        },
+        "MM_LOGSETTINGS_ENABLEFILE": {
+          "defaultValue": "false",
+          "description": "Log to Railway's log viewer only (no log files on the ephemeral disk).",
+          "required": false
+        },
+        "MM_LOGSETTINGS_CONSOLEJSON": {
+          "defaultValue": "false",
+          "description": "Human-readable console logs.",
+          "required": false
+        },
+        "MM_NOTIFICATIONLOGSETTINGS_ENABLEFILE": {
+          "defaultValue": "false",
+          "description": "No notification log file on the ephemeral disk.",
+          "required": false
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "30",
+          "description": "Time for open requests and websockets to close on redeploy.",
+          "required": false
+        }
+      }
+    },
+    "S3 Gateway": {
+      "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/rclone.svg",
+      "source": {
+        "repo": "baranberkay96/mattermost-railway",
+        "rootDirectory": "/services/s3-gateway"
+      },
+      "startCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ALWAYS",
+      "numReplicas": 1,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": null,
+      "variables": {
+        "PORT": {
+          "defaultValue": "9000",
+          "description": "Port of the S3 API on the private network.",
+          "required": false
+        },
+        "BUCKET_NAME": {
+          "defaultValue": "${{Bucket.BUCKET}}",
+          "description": "Railway Bucket name (S3 API name).",
+          "required": true
+        },
+        "BUCKET_ENDPOINT": {
+          "defaultValue": "${{Bucket.ENDPOINT}}",
+          "description": "Railway Bucket S3 endpoint.",
+          "required": true
+        },
+        "BUCKET_REGION": {
+          "defaultValue": "${{Bucket.REGION}}",
+          "description": "Railway Bucket region.",
+          "required": true
+        },
+        "BUCKET_ACCESS_KEY_ID": {
+          "defaultValue": "${{Bucket.ACCESS_KEY_ID}}",
+          "description": "Railway Bucket access key.",
+          "required": true
+        },
+        "BUCKET_SECRET_ACCESS_KEY": {
+          "defaultValue": "${{Bucket.SECRET_ACCESS_KEY}}",
+          "description": "Railway Bucket secret key.",
+          "required": true
+        },
+        "BUCKET_FORCE_PATH_STYLE": {
+          "defaultValue": "false",
+          "description": "Railway Buckets use virtual-hosted URLs; set true only if the Bucket's Credentials tab says path-style.",
+          "required": false
+        },
+        "BUCKET_PREFIX": {
+          "defaultValue": "",
+          "description": "Optional folder inside the Bucket for all gateway data (empty = Bucket root).",
+          "required": false
+        },
+        "GATEWAY_ACCESS_KEY": {
+          "defaultValue": "${{secret(20, \"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+          "description": "Access key Mattermost signs with (generated).",
+          "required": true
+        },
+        "GATEWAY_SECRET_KEY": {
+          "defaultValue": "${{secret(40, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+          "description": "Secret key Mattermost signs with (generated).",
+          "required": true
+        },
+        "GATEWAY_BUCKETS": {
+          "defaultValue": "mattermost",
+          "description": "Space-separated logical buckets created as folders at start.",
+          "required": true
+        },
+        "GATEWAY_LOG_LEVEL": {
+          "defaultValue": "NOTICE",
+          "description": "rclone log level (ERROR, NOTICE, INFO, DEBUG).",
+          "required": false
+        }
+      }
+    },
+    "Postgres": {
+      "icon": "https://devicons.railway.app/i/postgresql.svg",
+      "source": {
+        "image": "ghcr.io/railwayapp-templates/postgres-ssl:18"
+      },
+      "startCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": {
+        "mountPath": "/var/lib/postgresql/data"
+      },
+      "variables": {
+        "PGDATA": {
+          "defaultValue": "/var/lib/postgresql/data/pgdata",
+          "description": "Location where the database will be initialized",
+          "required": true
+        },
+        "PGHOST": {
+          "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Railway Private Domain Name.",
+          "required": true
+        },
+        "PGPORT": {
+          "defaultValue": "5432",
+          "description": "Port to connect to Postgres.",
+          "required": true
+        },
+        "PGUSER": {
+          "defaultValue": "${{ POSTGRES_USER }}",
+          "description": "Required variable for Data panel",
+          "required": true
+        },
+        "PGDATABASE": {
+          "defaultValue": "${{POSTGRES_DB}}",
+          "description": "Required variable for the data panel.",
+          "required": true
+        },
+        "PGPASSWORD": {
+          "defaultValue": "${{POSTGRES_PASSWORD}}",
+          "description": "Required variable for Data panel",
+          "required": true
+        },
+        "POSTGRES_DB": {
+          "defaultValue": "railway",
+          "description": "Default database created when image is started.",
+          "required": true
+        },
+        "DATABASE_URL": {
+          "defaultValue": "postgresql://${{PGUSER}}:${{POSTGRES_PASSWORD}}@${{RAILWAY_PRIVATE_DOMAIN}}:5432/${{PGDATABASE}}",
+          "description": "URL to connect to Postgres (private network).",
+          "required": true
+        },
+        "POSTGRES_USER": {
+          "defaultValue": "postgres",
+          "description": "User to connect to Postgres DB",
+          "required": true
+        },
+        "SSL_CERT_DAYS": {
+          "defaultValue": "820",
+          "description": "SSL certificate expiry in days.",
+          "required": false
+        },
+        "POSTGRES_PASSWORD": {
+          "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}",
+          "description": "Password to connect to DB",
+          "required": true
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "60",
+          "description": "Allow Postgres to cleanly shut down",
+          "required": true
+        }
+      }
+    }
+  },
+  "buckets": [
+    "Bucket"
+  ]
+}
